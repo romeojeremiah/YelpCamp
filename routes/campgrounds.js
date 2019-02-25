@@ -15,16 +15,20 @@ router.get('/', function(req, res){
 })
 
 //NEW - show form to create new campground
-router.get('/new', function(req, res){
+router.get('/new', isLoggedIn, function(req, res){
     res.render('campgrounds/new')
 })
 
-//CREATE
-router.post('/', function(req, res){
-    var campground_name = req.body.name;
-    var campground_url = req.body.imageurl;
-    var campground_description = req.body.description;
-    var newCampground = {name: campground_name, image: campground_url, description: campground_description}
+//CREATE - add new campground to DB
+router.post('/', isLoggedIn, function(req, res){
+    var campground_name = req.body.name
+    var campground_url = req.body.imageurl
+    var campground_description = req.body.description
+    var author = {
+        id: req.user._id,
+        username: req.user.username
+    }
+    var newCampground = {name: campground_name, image: campground_url, description: campground_description, author:author}
     //Create a camp object and pass it to the campground page
     Camp.create(newCampground, function (err, camp){
         if(err){
@@ -51,5 +55,12 @@ router.get('/:id', function(req, res){
         }
     })
 })
+
+function isLoggedIn(req, res, next){
+    if(req.isAuthenticated()){
+        return next()
+    }
+    res.redirect('/login')
+}
 
 module.exports = router
